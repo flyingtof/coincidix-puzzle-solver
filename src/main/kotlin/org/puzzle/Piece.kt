@@ -1,130 +1,146 @@
 package org.puzzle
 
-import java.lang.StringBuilder
-
+/**
+ * A single Piece of the puzzle.
+ * It is made of several elements
+ */
 class Piece {
-    val frames: Set<Frame>
+    val elements: Set<PieceElement>
 
-    constructor(frames: Iterable<Frame>) {
-        var myFrames: Array<Frame> = emptyArray()
-        frames.forEach {
-            if (canAdd(it, myFrames)) {
-                myFrames = myFrames.plus(it)
+    constructor(elements: Iterable<PieceElement>) {
+        var myPieceElements: Array<PieceElement> = emptyArray()
+        elements.forEach {
+            if (canAdd(it, myPieceElements)) {
+                myPieceElements += it
             }
         }
-        verify(myFrames)
-        this.frames = myFrames.toSet()
+        verify(myPieceElements)
+        this.elements = myPieceElements.toSet()
     }
 
     constructor(string: String) : this(fromString(string))
 
-    val frameCount get() = frames.size
+    val elementsCount get() = elements.size
 
 
     fun rotate(rotationCount: Int): Piece {
-        val rotatedFrames = this.frames.map { it.rotate(rotationCount) }
-        return moveToFirstQuadrant(rotatedFrames)
+        val rotatedElements = this.elements.map { it.rotate(rotationCount) }
+        return moveToFirstQuadrant(rotatedElements)
     }
 
-    fun turnaround(): Piece {
-        val turnaroundFrames = this.frames.map { it.turnaround() }
-        return moveToFirstQuadrant(turnaroundFrames)
+    fun invert(): Piece {
+        val inverted = this.elements.map { it.invert() }
+        return moveToFirstQuadrant(inverted)
     }
 
     private var _allOrientations: Collection<Piece> = emptyList()
     private var _allOrientationsComputed = false
 
     fun allOrientations(): Collection<Piece> {
-        if (!_allOrientationsComputed){
-            val turnaround = this.turnaround()
+        if (!_allOrientationsComputed) {
+            val inverted = this.invert()
+            // use a Set here to remove duplicated pieces
             _allOrientations = hashSetOf(this,
                     this.rotate(1), this.rotate(2), this.rotate(3),
-                    turnaround,
-                    turnaround.rotate(1), turnaround.rotate(2), turnaround.rotate(3))
+                    inverted,
+                    inverted.rotate(1), inverted.rotate(2), inverted.rotate(3))
             _allOrientationsComputed = true
         }
-        return _allOrientations;
+        return _allOrientations
     }
 
     override fun toString(): String {
-        val minX = frames.minBy { it.x }!!.x
-        val minY = frames.minBy { it.y }!!.y
-        val maxX = frames.maxBy { it.x }!!.x
-        val maxY = frames.maxBy { it.y }!!.y
-        val pixels = Array(maxX - minX + 1) { Array(maxY - minY + 1) { Pattern.Empty } }
-        frames.forEach { frame -> pixels[frame.x - minX][frame.y - minY] = frame.pattern }
+        val minX = elements.minBy { it.x }!!.x
+        val minY = elements.minBy { it.y }!!.y
+        val maxX = elements.maxBy { it.x }!!.x
+        val maxY = elements.maxBy { it.y }!!.y
+        val patterns = Array(maxX - minX + 1) { Array(maxY - minY + 1) { Pattern.Empty } }
+        elements.forEach { element -> patterns[element.x - minX][element.y - minY] = element.pattern }
         val sb = StringBuilder()
         for (y in minY..maxY) {
             for (x in minX..maxX)
-                sb.append("|").append(pixels[x][y])
+                sb.append("|").append(patterns[x][y])
             sb.append("|\n")
         }
-        if (sb.lastIndex >=0){
+        if (sb.lastIndex >= 0) {
             sb.deleteCharAt(sb.lastIndex)
         }
         return sb.toString()
     }
 
-    private fun moveToFirstQuadrant(rotatedFrames: Iterable<Frame>): Piece {
-        val minX = rotatedFrames.minBy { it.x }!!.x
-        val minY = rotatedFrames.minBy { it.y }!!.y
-        return Piece(rotatedFrames.map { it -> it.translate(-minX, -minY) })
+    private fun moveToFirstQuadrant(elements: Iterable<PieceElement>): Piece {
+        val minX = elements.minBy { it.x }!!.x
+        val minY = elements.minBy { it.y }!!.y
+        return Piece(elements.map { element -> element.translate(-minX, -minY) })
     }
 
     override fun equals(other: Any?): Boolean {
-        return other is Piece && this.frames == other.frames
+        return other is Piece && this.elements == other.elements
     }
 
     override fun hashCode(): Int {
-        return this.frames.hashCode()
+        return this.elements.hashCode()
     }
 
-    private fun canAdd(frame: Frame, frames: Array<Frame>): Boolean {
-        if (frames.isEmpty()) {
+    private fun canAdd(pieceElement: PieceElement, pieceElements: Array<PieceElement>): Boolean {
+        if (pieceElements.isEmpty()) {
             return true
         }
-        if (!isOnPositiveQuarter(frame)) {
-            throw NegativeCoordinateFramedInPieceException()
+        if (!isOnPositiveQuarter(pieceElement)) {
+            throw NegativeCoordinateElementInPieceException()
         }
         return true
     }
 
-    private fun isOnPositiveQuarter(frame: Frame) =
-            frame.x >= 0 && frame.y >= 0
+    private fun isOnPositiveQuarter(pieceElement: PieceElement) =
+            pieceElement.x >= 0 && pieceElement.y >= 0
 
-    private fun verify(frames: Array<Frame>) {
-        if (frames.size <= 1) {
+    private fun verify(pieceElements: Array<PieceElement>) {
+        if (pieceElements.size <= 1) {
             return
         }
-        if (!areAllAdjacent(frames)) {
-            throw NonAdjacentFramedInPieceException()
+        if (!areAllAdjacent(pieceElements)) {
+            throw NonAdjacentElementInPieceException()
         }
     }
 
-    private fun areAllAdjacent(frames: Array<Frame>) =
-            frames.fold(true) { allAdjacent, frame -> allAdjacent && isAdjacentToAnExistingFrame(frame, frames) }
+    private fun areAllAdjacent(pieceElements: Array<PieceElement>) =
+            pieceElements.fold(true) { allAdjacent, element -> allAdjacent && isAdjacentToAnExistingElement(element, pieceElements) }
 
-    private fun isAdjacentToAnExistingFrame(frame: Frame, frames: Array<Frame>) =
-            frames.any { it.isAdjacentWith(frame) }
+    private fun isAdjacentToAnExistingElement(pieceElement: PieceElement, pieceElements: Array<PieceElement>) =
+            pieceElements.any { it.isAdjacentWith(pieceElement) }
 
     companion object {
-        private fun fromString(string: String): Iterable<Frame> {
-            var frames: Array<Frame> = emptyArray()
+        /**
+         * build a Piece from a textual representation
+         * E.g.:
+         * | |x|x|
+         * |x|o| |
+         * When the letter is: <ul>
+         * <li>'x': it is plain</li>
+         * <li>'o': there is a hole</li>
+         * <li>' ': it's empty</li>
+         * </ul>
+         * The character '|' is for better visualisation
+         *
+         */
+        private fun fromString(string: String): Iterable<PieceElement> {
+            var elements: Array<PieceElement> = emptyArray()
             string
                     .split("\n")
-                    .map { it ->
+                    .map {
                         it.trim('|')
                                 .split('|')
                     }
                     .forEachIndexed { indexY, list ->
                         list.forEachIndexed { indexX, s ->
                             val pattern = Pattern.of(s)
-                            if (pattern != Pattern.Empty){
-                                frames = frames.plus(Frame(indexX, indexY, pattern))
+                            if (pattern != Pattern.Empty) {
+                                elements += PieceElement(indexX, indexY, pattern)
                             }
                         }
                     }
-            return frames.asIterable()
+            return elements.asIterable()
         }
 
     }

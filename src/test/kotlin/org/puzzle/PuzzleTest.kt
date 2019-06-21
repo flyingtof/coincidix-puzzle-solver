@@ -1,7 +1,6 @@
 package org.puzzle
 
-import org.assertj.core.api.Assertions.*
-import org.junit.Ignore
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 import java.io.File
 
@@ -171,7 +170,7 @@ class PuzzleTest {
     }
 
     @Test
-    @Ignore("sometimes too long to solve")
+//    @Ignore("sometimes too long to solve")
     fun `solve 6 (1)`() {
         val puzzle = Puzzle(6)
         val p1 = Piece("""
@@ -191,7 +190,7 @@ class PuzzleTest {
     @Test
     fun `solve 6 (2)`() {
         val length = 6
-        var puzzle = Puzzle(length)
+        val puzzle = Puzzle(length)
         val result =
                 puzzle.solve(listOf(
                         Piece("""
@@ -228,7 +227,7 @@ class PuzzleTest {
     }
 
     @Test
-    @Ignore
+//    @Ignore
     fun `solve 6 holes`() {
         val length = 6
         val mask = Array(length) { Array(length) { Pattern.Plain } }
@@ -278,7 +277,7 @@ class PuzzleTest {
         File("src/test/kotlin/org/puzzle/realCases.txt").readText()
                 .split("--".toRegex(RegexOption.MULTILINE))
                 .drop(1)
-                .filter { !it.isEmpty() }
+                .filter { it.isNotEmpty() }
                 .forEachIndexed { index, s ->
                     if (s.trim().startsWith("piece")) {
                         readPieces = true

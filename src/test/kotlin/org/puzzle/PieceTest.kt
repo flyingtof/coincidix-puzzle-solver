@@ -6,45 +6,45 @@ import org.junit.Test
 class PieceTest {
 
     @Test
-    fun `can build with a simple frame(1)`() {
+    fun `can build with a simple element(1)`() {
         val piece = Piece("|x|")
-        assertThat(piece.frameCount).isEqualTo(1)
+        assertThat(piece.elementsCount).isEqualTo(1)
     }
 
     @Test
-    fun `can build with a simple frame(2)`() {
+    fun `can build with a simple element(2)`() {
         val piece = Piece("|x|o|")
-        assertThat(piece.frameCount).isEqualTo(2)
+        assertThat(piece.elementsCount).isEqualTo(2)
     }
 
     @Test
-    fun `can build with a simple frame(3)`() {
+    fun `can build with a simple element(3)`() {
         val piece = Piece("""
             |x|o|x|
             | |x| |
             """".trimIndent())
-        assertThat(piece.frameCount).isEqualTo(4)
+        assertThat(piece.elementsCount).isEqualTo(4)
     }
 
-    @Test(expected = NonAdjacentFramedInPieceException::class)
-    fun `can not build with no adjacent frames`() {
+    @Test(expected = NonAdjacentElementInPieceException::class)
+    fun `can not build with no adjacent elements`() {
         Piece("""
             |X| |
             | |X|
         """.trimIndent())
     }
 
-    @Test(expected = NonAdjacentFramedInPieceException::class)
-    fun `can not build with no adjacent frames (2)`() {
+    @Test(expected = NonAdjacentElementInPieceException::class)
+    fun `can not build with no adjacent elements(2)`() {
         Piece("""
             |X| |X|
             | | |X|
         """.trimIndent())
     }
 
-    @Test(expected = NegativeCoordinateFramedInPieceException::class)
-    fun `can not build with frames not on positive x,positive y quadrant`() {
-        Piece(listOf(Frame(0, 0), Frame(-1, 0)))
+    @Test(expected = NegativeCoordinateElementInPieceException::class)
+    fun `can not build with elements not on positive x,positive y quadrant`() {
+        Piece(listOf(PieceElement(0, 0), PieceElement(-1, 0)))
     }
 
     @Test
@@ -127,7 +127,7 @@ class PieceTest {
     }
 
     @Test
-    fun `turnaround`() {
+    fun invert() {
         val initial = Piece("""
             |x| |
             |x|x|
@@ -136,21 +136,21 @@ class PieceTest {
             | |x|
             |x|x|
         """.trimIndent())
-        assertThat(initial.turnaround()).isEqualTo(expected)
+        assertThat(initial.invert()).isEqualTo(expected)
     }
 
     @Test
-    fun `turnaround of a cross piece`() {
+    fun `invert of a cross piece`() {
         val piece = Piece("""
             | |X| |
             |X|X|X|
             | |X| |
         """.trimIndent())
-        assertThat(piece.turnaround()).isEqualTo(piece)
+        assertThat(piece.invert()).isEqualTo(piece)
     }
 
     @Test
-    fun `all orientations`(){
+    fun `all orientations`() {
         val piece = Piece("""
            |X| | |
            |X|X|X|
@@ -161,15 +161,15 @@ class PieceTest {
                 .contains(piece.rotate(1))
                 .contains(piece.rotate(2))
                 .contains(piece.rotate(3))
-                .contains(piece.turnaround())
-                .contains(piece.turnaround().rotate(1))
-                .contains(piece.turnaround().rotate(2))
-                .contains(piece.turnaround().rotate(3))
+                .contains(piece.invert())
+                .contains(piece.invert().rotate(1))
+                .contains(piece.invert().rotate(2))
+                .contains(piece.invert().rotate(3))
         assertThat(allOrientations).hasSize(8)
     }
 
     @Test
-    fun `all orientations (2)`(){
+    fun `all orientations (2)`() {
         val piece = Piece("""
            | |X| |
            |X|X|X|
@@ -180,25 +180,25 @@ class PieceTest {
     }
 
     @Test
-    fun `toString 1`(){
+    fun `toString 1`() {
         testToString("""
             |x|""".trimIndent())
     }
 
     @Test
-    fun `toString 2`(){
+    fun `toString 2`() {
         testToString("""
             |x|x|""".trimIndent())
     }
 
     @Test
-    fun `toString 3`(){
+    fun `toString 3`() {
         testToString("""
             |x|x|x|""".trimIndent())
     }
 
     @Test
-    fun `toString 4`(){
+    fun `toString 4`() {
         testToString("""
             |x|
             |x|

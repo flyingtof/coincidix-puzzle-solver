@@ -1,5 +1,5 @@
 package org.puzzle
 
 open class InvalidStructureException(message: String) : java.lang.Exception(message)
-class NonAdjacentFramedInPieceException : InvalidStructureException("Try to build a piece with non adjacent frames")
-class NegativeCoordinateFramedInPieceException : InvalidStructureException("Try to build a piece with non adjacent frames")
+class NonAdjacentElementInPieceException : InvalidStructureException("Try to build a piece with non adjacent elements")
+class NegativeCoordinateElementInPieceException : InvalidStructureException("Try to build a piece with non adjacent elements")
